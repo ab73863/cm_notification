@@ -1,0 +1,78 @@
+name: Automatically deploy main branch to dev environment
+
+on:  
+  push:
+    tags:
+      - 'dev-*'
+    paths-ignore:
+      - 'README.md'
+
+env:
+  AWS_REGION: ap-southeast-2
+  ENVIRONMENT: dev
+  FLOW_TIMEOUT: 5
+  FLOW_MEMORY: 1024
+  FLOW_ENV: '{"Variables":{"servicename": "cm_notification","datadoghost" : "http-intake.logs.datadoghq.com","datadogkey" : "${{ secrets.NP_DATADOG_KEY }}","bucketkey": "${{secrets.NP_AWS_ACCESS_KEY_ID}}","bucketsecret": "${{secrets.NP_AWS_SECRET_ACCESS_KEY}}" }}'
+  FLOW_TAGS: '{"OWNER": "CM"}'    
+  FLOW_TRIGGERS: '[{"sqs": {"queueArn": "arn:aws:sqs:ap-southeast-2:174842903734:notifyqueue"}}]'
+
+jobs:
+  deploy-development:
+    name: Deploy to dev - tag on main branch
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+
+    # clone repo
+    - name: checkout sources
+      uses: actions/checkout@v2
+
+    # setup aws credentials
+    - uses: actions/checkout@v2
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:        
+        aws-access-key-id: ${{ secrets.NP_AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.NP_AWS_SECRET_ACCESS_KEY }}    
+        aws-region:  ${{ env.AWS_REGION }}
+
+    # setup right node version
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    # install kumologica cli
+    - name: Install kumologica cli
+      run: |
+        npm install -g @kumologica/sdk@3.0.14 --ignore-scripts
+        
+    # build flow binaries, default settings used here,
+    # the ./build/lambda.zip will be created
+    - name: build flow binaries
+      run: kl build aws
+
+    # generate CF script
+    - name: generate cf script
+      run: |
+        kl export cloudformation --project-directory . --environment '${{ env.FLOW_ENV }}' --tags '${{ env.FLOW_TAGS }}' --timeout ${{ env.FLOW_TIMEOUT }}  --memory-size ${{ env.FLOW_MEMORY }} --zip-file-name lambda.zip --lambda-name ${{ env.ENVIRONMENT }}-cm-notification-flow --bucket-name ${{ secrets.NP_S3_DEPLOY_BUCKET }}
+ 
+    - name: display script
+      run: 
+        less ./build/template.json
+
+    # cf prepare
+    - name: cf package
+      run: 
+        aws cloudformation package --template-file ./build/template.json --s3-bucket ${{ secrets.NP_S3_DEPLOY_BUCKET }} --s3-prefix ${{ env.ENVIRONMENT }}-cm-notification-flow --output-template-file cm-notification-flow.yml
+ 
+    # cf deploy
+    - name: Deploy CloudFormation Stack
+      uses: aws-actions/aws-cloudformation-github-deploy@v1.0.3         
+      with:
+        name: ${{ env.ENVIRONMENT }}-cm-notification-flow
+        template: cm-notification-flow.yml
+        capabilities: CAPABILITY_NAMED_IAM, CAPABILITY_AUTO_EXPAND
+        no-fail-on-empty-changeset: "1"

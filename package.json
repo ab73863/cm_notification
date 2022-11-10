@@ -1,0 +1,22 @@
+{
+    "name": "cm-notification",
+    "version": "1.0.0",
+    "description": "Kumologica flow",
+    "main": "lambda.js",
+    "files": [
+        "lambda.js",
+        "cm_notification-flow.json",
+        "node_modules/**/*"
+    ],
+    "scripts": {},
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@kumologica/kumologica-contrib-datadog": "^0.0.15",
+        "@kumologica/runtime": "3.0.27-beta6"
+    },
+    "devDependencies": {
+        "aws-sdk": "^2.513.0"
+    }
+}
