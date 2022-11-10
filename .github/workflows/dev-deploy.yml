@@ -57,7 +57,7 @@ jobs:
     # generate CF script
     - name: generate cf script
       run: |
-        kl export cloudformation --project-directory . --environment '${{ env.FLOW_ENV }}' --tags '${{ env.FLOW_TAGS }}' --timeout ${{ env.FLOW_TIMEOUT }}  --memory-size ${{ env.FLOW_MEMORY }} --zip-file-name lambda.zip --lambda-name ${{ env.ENVIRONMENT }}-cm-notification-flow --bucket-name ${{ secrets.NP_S3_DEPLOY_BUCKET }}
+        kl export cloudformation --project-directory . --environment '${{ env.FLOW_ENV }}' --tags '${{ env.FLOW_TAGS }}' --timeout ${{ env.FLOW_TIMEOUT }}  --memory-size ${{ env.FLOW_MEMORY }} --zip-file-name lambda.zip --lambda-name ${{ env.ENVIRONMENT }}-cm-notification-flow --bucket-name ${{ secrets.NP_S3_DEPLOY_BUCKET }} --triggers '${{ env.FLOW_TRIGGERS }}'
  
     - name: display script
       run: 
