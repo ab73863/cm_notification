@@ -170,7 +170,7 @@
                 "t": "set",
                 "p": "bid",
                 "pt": "camsg",
-                "to": "$eval( msg.payload.Records[0] ).bid",
+                "to": "$eval( msg.payload.Records[0].body ).bid",
                 "tot": "jsonata"
             }
         ],
