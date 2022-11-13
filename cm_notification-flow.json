@@ -28,7 +28,6 @@
         "bucketName": "",
         "event": "",
         "reference": "",
-        "queueName": "notifyqueue",
         "kapiUrl": "",
         "kcronexpression": "",
         "kreference": "",
@@ -50,13 +49,10 @@
         "z": "main.flow",
         "name": "Success",
         "statusCode": "200",
-        "responseType": "http",
         "headers": {
             "Content-Type": "application/json"
         },
         "payload": "{\"status\": \"completed\"}",
-        "eventPayload": "",
-        "eventType": "success",
         "x": 520,
         "y": 160,
         "wires": [],
@@ -132,7 +128,7 @@
         "keyType": "",
         "property": "$string( {\"type\":\"service-in\", \"message\" : \"SNS event recieved\", \"data\": msg.payload, \"btxnid\": msg.bid,\"txnid\" : msg._msgid } )",
         "propertyType": "",
-        "x": 362.5,
+        "x": 402.5,
         "y": 160,
         "wires": [
             [
